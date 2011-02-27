@@ -11,15 +11,17 @@
                    \D 500
                    \M 1000})
                   
-(defn convert-digits [digits]
+(defn convert [roman-number]
+  (->  roman-number convert-to-digits build-context negate-if-necessary-all sum))
+
+(defn convert-to-digits [digits]
   (map roman-digits digits))
 
 (defn negate-if-necessary-all [seq]
   (map negate-if-necessary seq))
-(defn convert [roman-number]
-  (reduce +
-    (->  roman-number convert-digits build-context negate-if-necessary-all)))
 
+(defn sum [coll]
+  (reduce + coll))
 
 (defn build-context [numbers]
   (partition 2 1 [0] numbers))
@@ -46,7 +48,7 @@
   (convert "MI") => 1001)
   
 (fact 
-  (convert-digits "IVXLCDM") => [1 5 10 50 100 500 1000])
+  (convert-to-digits "IVXLCDM") => [1 5 10 50 100 500 1000])
 (fact 
   (convert "MMXI") => 2011)
 (fact 
