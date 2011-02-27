@@ -14,11 +14,12 @@
 (defn convert-digits [digits]
   (map roman-digits digits))
 
+(defn negate-if-necessary-all [seq]
+  (map negate-if-necessary seq))
 (defn convert [roman-number]
   (reduce +
-    (map negate-if-necessary 
-      (build-context
-        (convert-digits roman-number)))))
+    (->  roman-number convert-digits build-context negate-if-necessary-all)))
+
 
 (defn build-context [numbers]
   (partition 2 1 [0] numbers))
