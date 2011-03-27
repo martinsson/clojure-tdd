@@ -11,8 +11,6 @@
                    \D 500
                    \M 1000})
                   
-(defn convert [roman-number]
-  (->  roman-number convert-to-digits build-context negate-if-necessary-all sum))
 
 (defn convert-to-digits [digits]
   (map roman-digits digits))
@@ -30,6 +28,8 @@
   (if (< current nextt)
     (- current)
     current))
+(defn convert [roman-number]
+  (->  roman-number convert-to-digits build-context negate-if-necessary-all sum))
 
 (fact 
   (negate-if-necessary [10 100]) => -10
