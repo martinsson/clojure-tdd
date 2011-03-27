@@ -9,12 +9,21 @@
 (defn under-populated? [nb-neighbors]
   (< nb-neighbors 2))
 
-(defn next-state [current-state nb-neighbors]
-  (if (some true? [
-                   (over-populated? nb-neighbors) 
-                   (under-populated? nb-neighbors)])
+(defn dies? [nb-neighbors]
+  (if (or (under-populated? nb-neighbors) (over-populated? nb-neighbors))
     :dead-cell
     :live-cell))
+
+(defn is-born? [nb-neighbors]
+  (if (= nb-neighbors 3)
+      :live-cell
+      :dead-cell))
+
+(defn next-state [current-state nb-neighbors]
+  (if (= current-state :live-cell)
+    (dies? nb-neighbors)
+    (is-born? nb-neighbors)))
+
 
 (fact
 ;;   2. Any live cell with two or three live neighbours lives on to the next generation.
@@ -30,5 +39,9 @@
 ;;   3. Any live cell with more than three live neighbours dies, as if by overcrowding.
   (next-state :live-cell 4) => :dead-cell)
 
-(
+(fact
 ;;   4. Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+  (next-state :dead-cell 3) => :live-cell
+  (next-state :dead-cell 2) => :dead-cell
+  (next-state :dead-cell 4) => :dead-cell)
+
