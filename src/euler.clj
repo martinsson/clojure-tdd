@@ -17,43 +17,28 @@
   (apply + (filter even? (fib-less-than 4000000))))
 
 (defn divisable-by? [number div]
-  (= 0 (mod number div)))
+  (zero? (mod number div)))
 
-(defn lazy-primes []
-  (letfn [(enqueue [sieve n step]
-            (let [m (+ n step)]
-              (if (sieve m)
-                (recur sieve m step)
-                (assoc sieve m step))))
-          (next-sieve [sieve candidate]
-            (if-let [step (sieve candidate)]
-              (-> sieve
-                (dissoc candidate)
-                (enqueue candidate step))
-              (enqueue sieve candidate (+ candidate candidate))))
-          (next-primes [sieve candidate]
-            (if (sieve candidate)
-              (recur (next-sieve sieve candidate) (+ candidate 2))
-              (cons candidate
-                (lazy-seq (next-primes (next-sieve sieve candidate)
-                            (+ candidate 2))))))]
-    (cons 2 (lazy-seq (next-primes {} 3)))))
-
-(defn problem3 [number primes]
-  (let [current-prime (first primes)] 
-    (println number current-prime)
+(defn problem3-finder [number divisors]
+  (let [current-divisor (first divisors)] 
     (cond
-      (>= (* current-prime current-prime) number ) 
+      (>= (* current-divisor current-divisor) number ) 
         number
-      (divisable-by? number current-prime) 
-        (recur (/ number current-prime)  primes)
+      (divisable-by? number current-divisor) 
+        (recur (/ number current-divisor)  divisors)
       true 
-        (recur number (next primes)))))
+        (recur number (next divisors)))))
+(defn problem3 []
+  (problem3-finder 600851475143 (iterate inc 2)))
 
 (fact
-  (problem3 2 [2 3]) => 2)
+  (problem3-finder 2 [2 3]) => 2)
 (fact  
-  (problem3 14 [2 3 5 7]) => 7)
+  (problem3-finder 14 [2 3 5 7]) => 7)
 (fact 
-  (problem3 37 (lazy-primes)) => 37)
+  (problem3-finder 37 (lazy-primes)) => 37)
 
+(defn possible-products []
+  nil)
+(fact 
+  (possible-products 999) => (has-prefix [998001 997002 996004 996003 995006]))
