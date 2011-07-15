@@ -70,7 +70,32 @@
   (palindromes 100) => (has-prefix [9999 9889 9779]))
 
 (defn three-digit-divisors-of [n]
-  (for [x (range 1000 100 -1)) :when (and (divisable-by? n x)  (> 1000 (/ n x)))] [x (/ n x) n] )
+  (for [x (range 1000 100 -1) :when (and (divisable-by? n x)  (> 1000 (/ n x)))] [x (/ n x) n] ))
 
 (defn problem4-fast []
   (ffirst (filter not-empty (map three-digit-divisors-of (palindromes 1000)))))
+
+; problem 5
+; What is the smallest positive number that is evenly divisible by all of the numbers from 1 to 20?
+(defn smallest-number-evenly-divisable-by [numbers]
+  (apply * (reduce cumulated-divisors [] numbers)))
+(fact 
+  (smallest-number-evenly-divisable-by [1 2 3]) => 6
+  (smallest-number-evenly-divisable-by [1 2 3 4]) => 12
+  (smallest-number-evenly-divisable-by (range 1 11)) "=future=>" 2510
+  )
+
+(defn div-if-dividable [n div]
+  (if (divisable-by? n div)
+    (/ n div)
+    n))
+
+(defn next-remainder [divisors n]
+  (reduce div-if-dividable n divisors))
+(defn cumulated-divisors [divisors n]
+  (conj divisors (next-remainder divisors n)))
+
+(fact 
+  (cumulated-divisors [2 3 5] 24) => [2 3 5 4]
+  (cumulated-divisors [2 3 5] 17) => [2 3 5 17])
+
