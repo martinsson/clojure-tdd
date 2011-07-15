@@ -70,7 +70,7 @@
   (palindromes 100) => (has-prefix [9999 9889 9779]))
 
 (defn three-digit-divisors-of [n]
-  (for [x (reverse (range 100 1000)) :when (and (divisable-by? n x)  (> 1000 (/ n x)))] [x (/ n x) n] ))
+  (for [x (range 1000 100 -1)) :when (and (divisable-by? n x)  (> 1000 (/ n x)))] [x (/ n x) n] )
 
 (defn problem4-fast []
   (ffirst (filter not-empty (map three-digit-divisors-of (palindromes 1000)))))
