@@ -2,7 +2,8 @@
   (:use clojure.contrib.math)
   (:use [clojure-tdd.core] :reload)
   (:use [clojure.test])    
-  (:use [midje.sweet]))
+  (:use [midje.sweet])
+  (:use clojure.contrib.combinatorics))
 
 (defn problem1 []
   "sum of multiples of 3 and 5 below 1000"
@@ -38,7 +39,38 @@
 (fact 
   (problem3-finder 37 (lazy-primes)) => 37)
 
-(defn possible-products []
-  nil)
+(defn possible-products [ceiling]
+  (let [all-ints-desc (reverse (range  1 (inc ceiling)))] 
+    (map (partial apply *) (cartesian-product all-ints-desc all-ints-desc))))
 (fact 
-  (possible-products 999) => (has-prefix [998001 997002 996004 996003 995006]))
+   (set (possible-products 3)) => (in-any-order [9 6 4 3 2 1]))
+
+(defn reverse-sort [coll]
+  (reverse (sort coll)))
+(fact 
+  (reverse-sort '(3 4 2 0 1)) => '(4 3 2 1 0))
+
+(defn palindrome? [x]
+  (let [number (seq (str x))] 
+    (= number (reverse number))))
+(fact
+  (palindrome? 3) => truthy
+  (palindrome? 12) => falsey
+  (palindrome? 909) => truthy
+  )
+
+(defn problem4-slow []
+  (first (filter palindrome? (reverse-sort (possible-products 1000)))))
+
+(defn palindromes [max]
+  (let [left-side (map str (reverse (range max)))]
+    (map #(Integer/valueOf (str % (apply str (reverse %)))) left-side)))
+
+(fact 
+  (palindromes 100) => (has-prefix [9999 9889 9779]))
+
+(defn three-digit-divisors-of [n]
+  (for [x (reverse (range 100 1000)) :when (and (divisable-by? n x)  (> 1000 (/ n x)))] [x (/ n x) n] ))
+
+(defn problem4-fast []
+  (ffirst (filter not-empty (map three-digit-divisors-of (palindromes 1000)))))
