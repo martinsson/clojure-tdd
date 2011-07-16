@@ -33,15 +33,15 @@
 (defn prime? [n]
   (not-any? 
     (partial divisable-by? n)
-    (for [divisor (iterate inc 2) :while (<= (* divisor divisor) n ) ] divisor )))
+    (take-while #(< (* % %) n) (cons 2 (range 3 n 2)))))
 (fact 
   (prime? 10) => falsey
   (prime? 17) => truthy
   (prime? 2) => truthy)
 
-(defn problem41 [n] 
+(defn problem41 [digits] 
   (first (filter 
            prime? 
            (map 
-             #(Integer. (apply str %)) 
-             (permutations (range n 0 -1) )))))
+             #(Integer/parseInt (apply str %)) 
+             (permutations digits )))))
