@@ -52,3 +52,10 @@
   (solve (maze 1)) => "S"
   (solve (maze 2)) => "E"
 )
+
+(defn print-maze [n]
+  (def sysout (fn [text] (.println System/out text)))
+  (sysout (str "===> " "maze " n " <===="))
+  (doall (map sysout (maze n)))
+  (sysout "")
+  )
