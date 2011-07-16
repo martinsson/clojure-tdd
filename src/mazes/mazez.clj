@@ -34,22 +34,21 @@
 ; 00 10 20
 ; 01 11 21
 (defn pos [token maze] 
-  (let [line-contains-token? (fn [ln] #(.contains ln (str token)))
+  ; used to find the first position of token in maze (seq of strings)
+  (let [line-contains-token? (fn [ln] (.contains ln (str token)))
         line (first (filter line-contains-token?  maze))]
     [(first (positions #{token} line )) (first (positions line-contains-token? maze)) ]))
 
 (fact
-  (pos \I ["#I#" "#O#"]) => [1 0])
+  "position of I and O"
+  (pos \I ["#I#" "#O#"]) => [1 0]
+  (pos \O ["#I#" "#O#"]) => [1 1]
+  )
 
 (defn solve [maze]
-  (move (pos "I" maze) (pos "O" maze)))
+  (move (pos \I maze) (pos \O maze)))
 
 (fact 
   (solve (maze 1)) => "S"
-  (provided 
-    (pos "I" anything) => [1 0] 
-    (pos "O" anything) => [1 1])
   (solve (maze 2)) => "E"
-  (provided 
-    (pos "I" anything) => [0 1] 
-    (pos "O" anything) => [1 1]))
+)
