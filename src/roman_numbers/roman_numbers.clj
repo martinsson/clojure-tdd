@@ -10,13 +10,9 @@
                    \C 100
                    \D 500
                    \M 1000})
-                  
 
 (defn convert-to-digits [digits]
   (map roman-digits digits))
-
-(defn negate-if-necessary-all [seq]
-  (map negate-if-necessary seq))
 
 (defn sum [coll]
   (reduce + coll))
@@ -28,8 +24,27 @@
   (if (< current nextt)
     (- current)
     current))
+
+(defn negate-if-necessary-all [seq]
+  (map negate-if-necessary seq))
+
 (defn convert [roman-number]
   (->  roman-number convert-to-digits build-context negate-if-necessary-all sum))
+
+(defn ng 
+  ([coll] (ng (conj coll 0) []))
+  ([coll newcoll]
+    (let [fst (first coll)]
+      (if (= fst 0)
+        newcoll
+        (if (>= fst (second coll))
+          (recur (rest coll) (conj newcoll fst))
+          (recur (rest coll) (conj newcoll (- fst))))))))
+
+(fact
+  (ng [10 1 5] ) => [10 -1 5]
+  (ng [1 10]) => [-1 10]
+  (ng [10 1 5]) => [10 -1 5])
 
 (fact 
   (negate-if-necessary [10 100]) => -10
