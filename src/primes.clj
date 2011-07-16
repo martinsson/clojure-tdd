@@ -2,7 +2,8 @@
   (:use [clojure-tdd.core] :reload)
   (:use [clojure.test])    
   (:use [midje.sweet])
-  (:use [clojure.contrib.combinatorics]))
+  (:use [clojure.contrib.combinatorics])
+  (:use [euler-common]))
 
 
 (defn lazy-primes []
@@ -29,18 +30,18 @@
 (defn problem10 []
   (reduce + (take-while #(< % 2000000) (lazy-primes))))
 
-(defn prime? [prime-generator n]
-  (some 
-    (partial = n) 
-    (for [prime (prime-generator) :while (<= prime n ) ] prime )))
+(defn prime? [n]
+  (not-any? 
+    (partial divisable-by? n)
+    (for [divisor (iterate inc 2) :while (<= (* divisor divisor) n ) ] divisor )))
 (fact 
-  (prime? lazy-primes 10) => falsey
-  (prime? lazy-primes 17) => truthy
-  (prime? lazy-primes 2) => truthy)
+  (prime? 10) => falsey
+  (prime? 17) => truthy
+  (prime? 2) => truthy)
 
 (defn problem41 [n] 
   (first (filter 
-           (partial prime? (memoize lazy-primes)) 
+           prime? 
            (map 
              #(Integer. (apply str %)) 
              (permutations (range n 0 -1) )))))

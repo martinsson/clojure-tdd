@@ -4,7 +4,7 @@
   (:use [clojure.test])    
   (:use [midje.sweet])
   (:use clojure.contrib.combinatorics)
-  (:use clojure.contrib.math))
+  (:use [primes]))
 
 (defn problem1 []
   "sum of multiples of 3 and 5 below 1000"
@@ -18,8 +18,6 @@
 (defn problem2 []
   (apply + (filter even? (fib-less-than 4000000))))
 
-(defn divisable-by? [number div]
-  (zero? (mod number div)))
 
 (defn problem3-finder [number divisors]
   (let [current-divisor (first divisors)] 
@@ -78,13 +76,6 @@
 
 ; problem 5
 ; What is the smallest positive number that is evenly divisible by all of the numbers from 1 to 20?
-(defn smallest-number-evenly-divisable-by [numbers]
-  (apply * (reduce cumulated-divisors [] numbers)))
-(fact 
-  (smallest-number-evenly-divisable-by [1 2 3]) => 6
-  (smallest-number-evenly-divisable-by [1 2 3 4]) => 12
-  (smallest-number-evenly-divisable-by (range 1 11)) "=future=>" 2510
-  )
 
 (defn div-if-dividable [n div]
   (if (divisable-by? n div)
@@ -100,14 +91,22 @@
   (cumulated-divisors [2 3 5] 24) => [2 3 5 4]
   (cumulated-divisors [2 3 5] 17) => [2 3 5 17])
 
+(defn smallest-number-evenly-divisable-by [numbers]
+  (apply * (reduce cumulated-divisors [] numbers)))
+(fact 
+  (smallest-number-evenly-divisable-by [1 2 3]) => 6
+  (smallest-number-evenly-divisable-by [1 2 3 4]) => 12
+  (smallest-number-evenly-divisable-by (range 1 11)) "=future=>" 2510
+  )
+
 (defn sum-of-squares [max]
-  (apply + (map #(expt % 2) (range (inc max)))))
+  (reduce + (map #(expt % 2) (range (inc max)))))
 (fact
   (sum-of-squares 3) => 14
   (sum-of-squares 10) => 385)
 
 (defn square-of-sum [max]
-  (expt (apply + (range (inc max))) 2))
+  (expt (reduce + (range (inc max))) 2))
 (fact 
   (square-of-sum 3) => 36
   (square-of-sum 10) => 3025)
