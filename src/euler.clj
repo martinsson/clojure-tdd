@@ -3,7 +3,8 @@
   (:use [clojure-tdd.core] :reload)
   (:use [clojure.test])    
   (:use [midje.sweet])
-  (:use clojure.contrib.combinatorics))
+  (:use clojure.contrib.combinatorics)
+  (:use clojure.contrib.math))
 
 (defn problem1 []
   "sum of multiples of 3 and 5 below 1000"
@@ -99,3 +100,17 @@
   (cumulated-divisors [2 3 5] 24) => [2 3 5 4]
   (cumulated-divisors [2 3 5] 17) => [2 3 5 17])
 
+(defn sum-of-squares [max]
+  (apply + (map #(expt % 2) (range (inc max)))))
+(fact
+  (sum-of-squares 3) => 14
+  (sum-of-squares 10) => 385)
+
+(defn square-of-sum [max]
+  (expt (apply + (range (inc max))) 2))
+(fact 
+  (square-of-sum 3) => 36
+  (square-of-sum 10) => 3025)
+
+(defn problem6 []
+  (- (square-of-sum 100) (sum-of-squares 100)))
