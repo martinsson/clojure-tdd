@@ -31,11 +31,12 @@
       (and (= dx 1) (= dy 0) ) "E"
       ))
   )
-
+; 00 10 20
+; 01 11 21
 (defn pos [token maze] 
-  (let [line (some #(= token %)  maze)]
-    (println line)
-    (first (positions token line ))))
+  (let [line-contains-token? (fn [ln] #(.contains ln (str token)))
+        line (first (filter line-contains-token?  maze))]
+    [(first (positions #{token} line )) (first (positions line-contains-token? maze)) ]))
 
 (fact
   (pos \I ["#I#" "#O#"]) => [1 0])
