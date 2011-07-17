@@ -81,12 +81,12 @@
                                              [3 2]
                                              [2 1]
                                              [2 3])))
-
-(defn select-possible [potential indexed-maze]
+(defn- walkway-or-exit? [[kee sym]]
+  (#{\O \.} sym))
+(defn select-possible [vicinity-coord indexed-maze]
   (keys (filter
-          #(some #{\O \.} %)
-;          #(or (= \O (val %)) (= \. (val %))) 
-          (select-keys indexed-maze potential))))
+          walkway-or-exit?
+          (select-keys indexed-maze vicinity-coord))))
 
 (fact "selects pathway or exit"
   (select-possible (next-positions [0 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 1])
