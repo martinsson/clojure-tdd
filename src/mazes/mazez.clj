@@ -103,7 +103,15 @@
   (solve (maze 4)) => "W"
 )
 
+(defn move [{:keys [maze pos] :as solve-state}]
+  (update-in solve-state [:pos] :pos 
+             (first (select-possible 
+                               (next-positions pos) 
+                               maze))))
 
+(fact
+  (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [0 1]}) => (contains {:pos [1 1]})
+  (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [1 1]}) => (contains {:pos [1 2]}))
 
 (defn print-maze [n]
   (def sysout (fn [text] (.println System/out text)))
