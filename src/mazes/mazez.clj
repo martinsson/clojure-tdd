@@ -94,7 +94,13 @@
   (select-possible (next-positions [1 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 2])
   )
 (defn solve [maze]
-  (direction (pos \I maze) (pos \O maze)))
+  (let  [solution (take-while #(not= (:lastpos %) (pos \O maze)) 
+              (iterate move 
+                       {:maze (index-maze maze) :pos (pos \I maze)}))]
+    (println (map :lastpos solution)) 
+    ; ok got the sequence but how to extract the moves?
+    (map direction (map :lastpos solution) (map :pos solution)))
+  )
 
 (fact 
   (solve (maze 1)) => "S"
@@ -103,15 +109,14 @@
   (solve (maze 4)) => "W"
 )
 
-(defn move [{:keys [maze pos] :as solve-state}]
-  (update-in solve-state [:pos] :pos 
-             (first (select-possible 
+(defn move [{:keys [maze pos lastpos] :as solve-state}]
+  (merge solve-state {:lastpos pos :pos (first (select-possible 
                                (next-positions pos) 
-                               maze))))
+                               maze))} ))
 
 (fact
-  (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [0 1]}) => (contains {:pos [1 1]})
-  (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [1 1]}) => (contains {:pos [1 2]}))
+  (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [0 1]}) => (contains {:pos [1 1] :lastpos [0 1]})
+  (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [1 1]}) => (contains {:pos [1 2] :lastpos [1 1]}))
 
 (defn print-maze [n]
   (def sysout (fn [text] (.println System/out text)))
