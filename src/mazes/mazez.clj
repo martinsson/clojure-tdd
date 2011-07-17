@@ -5,7 +5,7 @@
   (:import (java.io BufferedReader FileReader))
   (:use [clojure.contrib.seq-utils :only [positions]] ))
 
-(defn file-name [number]
+(defn- file-name [number]
   (if (>= number 10)
     (str "src/mazes/problems/" number "_problem.txt")
     (str "src/mazes/problems/0" number "_problem.txt"))
@@ -23,27 +23,27 @@
   (maze 1) => ["#I#" "#O#"]
   (maze 2) => ["##" "IO" "##"])
 
-(defn move [[Ix Iy] [Ox Oy]]
+(defn- move [[Ix Iy] [Ox Oy]]
   (let [dx (- Ox Ix)
         dy (- Oy Iy)]
     (cond 
-      (and (= dx 0) (= dy 1) ) "S"
-      (and (= dx 1) (= dy 0) ) "E"
-      (and (= dx 0) (= dy -1) ) "N"
-      (and (= dx -1) (= dy 0) ) "W"
+      (and (= dx 0) (= dy 1) ) "E"
+      (and (= dx 1) (= dy 0) ) "S"
+      (and (= dx 0) (= dy -1) ) "W"
+      (and (= dx -1) (= dy 0) ) "N"
       ))
   )
-; 00 10 20
-; 01 11 21
+; 00 01 02
+; 10 11 12
 (defn pos [token maze] 
   ; used to find the first position of token in maze (seq of strings)
   (let [line-contains-token? (fn [ln] (.contains ln (str token)))
         line (first (filter line-contains-token?  maze))]
-    [(first (positions #{token} line )) (first (positions line-contains-token? maze)) ]))
+    [ (first (positions line-contains-token? maze)) (first (positions #{token} line ))]))
 
 (fact
   "position of I and O"
-  (pos \I ["#I#" "#O#"]) => [1 0]
+  (pos \I ["#I#" "#O#"]) => [0 1]
   (pos \O ["#I#" "#O#"]) => [1 1]
   )
 
