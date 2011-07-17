@@ -29,6 +29,8 @@
     (cond 
       (and (= dx 0) (= dy 1) ) "S"
       (and (= dx 1) (= dy 0) ) "E"
+      (and (= dx 0) (= dy -1) ) "N"
+      (and (= dx -1) (= dy 0) ) "W"
       ))
   )
 ; 00 10 20
@@ -51,6 +53,8 @@
 (fact 
   (solve (maze 1)) => "S"
   (solve (maze 2)) => "E"
+  (solve (maze 3)) => "N"
+  (solve (maze 4)) => "W"
 )
 
 (defn print-maze [n]
