@@ -3,7 +3,7 @@
   (:use [clojure.test])    
   (:use [midje.sweet])
   (:import (java.io BufferedReader FileReader))
-  (:use [clojure.contrib.seq-utils :only [positions]] ))
+  (:use [clojure.contrib.seq-utils :only [positions indexed]] ))
 
 (defn- file-name [number]
   (if (>= number 10)
@@ -23,7 +23,7 @@
   (maze 1) => ["#I#" "#O#"]
   (maze 2) => ["##" "IO" "##"])
 
-(defn- move [[Ix Iy] [Ox Oy]]
+(defn- direction [[Ix Iy] [Ox Oy]]
   (let [dx (- Ox Ix)
         dy (- Oy Iy)]
     (cond 
@@ -33,6 +33,10 @@
       (and (= dx -1) (= dy 0) ) "N"
       ))
   )
+(def directions #{[1 0]
+                  [-1 0]
+                  [0 1]
+                  [0 -1]})
 ; 00 01 02
 ; 10 11 12
 (defn pos [token maze] 
@@ -47,8 +51,50 @@
   (pos \O ["#I#" "#O#"]) => [1 1]
   )
 
+; -> maze index-maze (while not O move (chose (remove-current (filter-possible (new-possitions current-pos))) -> map-direction 
+
+(defn- index-maze 
+  ([maze] (index-maze maze  0 0 {}))
+  ([maze lineN¡ colN¡ indexed-maze ]
+    (cond 
+      (empty? maze) indexed-maze
+      (empty? (first maze)) (recur (next maze) (inc lineN¡) 0 indexed-maze)
+      true (recur 
+             (cons (next (first maze)) (next maze)) 
+             lineN¡ 
+             (inc colN¡) 
+             (merge indexed-maze {[lineN¡ colN¡] (first (first maze))}) ))))
+
+(fact
+  (index-maze '("#I#" "#O#")) => (in-any-order {[0 0] \# 
+                                  [0 1] \I
+                                  [0 2] \#
+                                  [1 0] \#
+                                  [1 1] \O
+                                  [1 2] \#}))
+(defn- vector-add [v substractor]
+  (apply vector (map + v substractor)))
+(defn- next-positions [current]
+  (map  (partial vector-add current) directions))
+(fact 
+  (next-positions [2 2]) => (in-any-order  '([1 2]
+                                             [3 2]
+                                             [2 1]
+                                             [2 3])))
+
+(defn select-possible [potential indexed-maze]
+  (keys (filter
+          #(some #{\O \.} %)
+;          #(or (= \O (val %)) (= \. (val %))) 
+          (select-keys indexed-maze potential))))
+
+(fact "selects pathway or exit"
+  (select-possible (next-positions [0 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 1])
+  (select-possible (next-positions [0 1]) (index-maze '("#I#" "#.." "###"))) => '([1 1])
+  (select-possible (next-positions [1 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 2])
+  )
 (defn solve [maze]
-  (move (pos \I maze) (pos \O maze)))
+  (direction (pos \I maze) (pos \O maze)))
 
 (fact 
   (solve (maze 1)) => "S"
@@ -56,6 +102,8 @@
   (solve (maze 3)) => "N"
   (solve (maze 4)) => "W"
 )
+
+
 
 (defn print-maze [n]
   (def sysout (fn [text] (.println System/out text)))
