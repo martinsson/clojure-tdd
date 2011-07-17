@@ -23,15 +23,18 @@
   (maze 1) => ["#I#" "#O#"]
   (maze 2) => ["##" "IO" "##"])
 
-(defn- direction [[Ix Iy] [Ox Oy]]
-  (let [dx (- Ox Ix)
+(defn- direction [[Ix Iy :as lastpos] [Ox Oy :as pos]]
+  
+  (if (nil? (and lastpos pos)) nil 
+    (let [dx (- Ox Ix)
         dy (- Oy Iy)]
     (cond 
       (and (= dx 0) (= dy 1) ) "E"
       (and (= dx 1) (= dy 0) ) "S"
       (and (= dx 0) (= dy -1) ) "W"
       (and (= dx -1) (= dy 0) ) "N"
-      ))
+      
+      )))
   )
 (def directions #{[1 0]
                   [-1 0]
@@ -93,13 +96,22 @@
   (select-possible (next-positions [0 1]) (index-maze '("#I#" "#.." "###"))) => '([1 1])
   (select-possible (next-positions [1 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 2])
   )
+(defn move [{:keys [maze pos lastpos] :as solve-state}]
+  (println "pos " pos " lastpos " lastpos)
+  (merge solve-state {:lastpos pos :pos (first (select-possible 
+                               (next-positions pos) 
+                               maze))} ))
+
+(fact
+  (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [0 1]}) => (contains {:pos [1 1] :lastpos [0 1]})
+  (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [1 1]}) => (contains {:pos [1 2] :lastpos [1 1]}))
+
 (defn solve [maze]
   (let  [solution (take-while #(not= (:lastpos %) (pos \O maze)) 
               (iterate move 
                        {:maze (index-maze maze) :pos (pos \I maze)}))]
-    (println (map :lastpos solution)) 
     ; ok got the sequence but how to extract the moves?
-    (map direction (map :lastpos solution) (map :pos solution)))
+    (apply str (map direction (map :lastpos solution) (map :pos solution))))
   )
 
 (fact 
@@ -108,15 +120,6 @@
   (solve (maze 3)) => "N"
   (solve (maze 4)) => "W"
 )
-
-(defn move [{:keys [maze pos lastpos] :as solve-state}]
-  (merge solve-state {:lastpos pos :pos (first (select-possible 
-                               (next-positions pos) 
-                               maze))} ))
-
-(fact
-  (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [0 1]}) => (contains {:pos [1 1] :lastpos [0 1]})
-  (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [1 1]}) => (contains {:pos [1 2] :lastpos [1 1]}))
 
 (defn print-maze [n]
   (def sysout (fn [text] (.println System/out text)))
