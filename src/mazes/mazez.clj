@@ -26,12 +26,13 @@
 (defn- vector-diff [v substractor]
   (apply vector (map - v substractor)))
 (defn- direction [{:keys [lastpos pos]}]
-    (if (nil? (and lastpos pos)) nil 
-    (cond 
-      (= [0 1] (vector-diff pos lastpos))  "E"
-      (= [1 0] (vector-diff pos lastpos)) "S"
-      (= [0 -1] (vector-diff pos lastpos)) "W"
-      (= [-1 0] (vector-diff pos lastpos)) "N")))
+    (if (some nil? [lastpos pos]) 
+      nil 
+      (cond 
+        (= [0 1] (vector-diff pos lastpos))  "E"
+        (= [1 0] (vector-diff pos lastpos)) "S"
+        (= [0 -1] (vector-diff pos lastpos)) "W"
+        (= [-1 0] (vector-diff pos lastpos)) "N")))
   
 (fact
   (direction {:lastpos [1 1] :pos [0 1]}) => "N")
@@ -107,12 +108,14 @@
   (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [0 1]}) => (contains {:pos [1 1] :lastpos [0 1]})
   (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [1 1]}) => (contains {:pos [1 2] :lastpos [1 1]}))
 
+(defn not-finished? [maze solving-state]
+  (not= (:lastpos solving-state) (pos \O maze)))
+
 (defn solve [maze]
-  (let  [solution (take-while #(not= (:lastpos %) (pos \O maze)) 
-              (iterate move 
-                       {:maze (index-maze maze) :pos (pos \I maze)}))]
-    ; ok got the sequence but how to extract the moves?
-    (apply str (map direction solution)))
+  (let  [start-state {:maze (index-maze maze) :pos (pos \I maze)}
+         steps (take-while (partial not-finished? maze) 
+              (iterate move start-state))]
+    (apply str (map direction steps)))
   )
 
 (fact 
