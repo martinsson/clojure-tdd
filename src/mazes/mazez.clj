@@ -23,19 +23,20 @@
   (maze 1) => ["#I#" "#O#"]
   (maze 2) => ["##" "IO" "##"])
 
-(defn- direction [[Ix Iy :as lastpos] [Ox Oy :as pos]]
-  
-  (if (nil? (and lastpos pos)) nil 
-    (let [dx (- Ox Ix)
-        dy (- Oy Iy)]
+(defn- vector-diff [v substractor]
+  (apply vector (map - v substractor)))
+(defn- direction [{:keys [lastpos pos]}]
+    (if (nil? (and lastpos pos)) nil 
     (cond 
-      (and (= dx 0) (= dy 1) ) "E"
-      (and (= dx 1) (= dy 0) ) "S"
-      (and (= dx 0) (= dy -1) ) "W"
-      (and (= dx -1) (= dy 0) ) "N"
-      
-      )))
-  )
+      (= [0 1] (vector-diff pos lastpos))  "E"
+      (= [1 0] (vector-diff pos lastpos)) "S"
+      (= [0 -1] (vector-diff pos lastpos)) "W"
+      (= [-1 0] (vector-diff pos lastpos)) "N")))
+  
+(fact
+  (direction {:lastpos [1 1] :pos [0 1]}) => "N")
+
+
 (def directions #{[1 0]
                   [-1 0]
                   [0 1]
@@ -75,8 +76,8 @@
                                   [1 0] \#
                                   [1 1] \O
                                   [1 2] \#}))
-(defn- vector-add [v substractor]
-  (apply vector (map + v substractor)))
+(defn- vector-add [v delta]
+  (apply vector (map + v delta)))
 (defn- next-positions [current]
   (map  (partial vector-add current) directions))
 (fact 
@@ -111,11 +112,10 @@
               (iterate move 
                        {:maze (index-maze maze) :pos (pos \I maze)}))]
     ; ok got the sequence but how to extract the moves?
-    (apply str (map direction (map :lastpos solution) (map :pos solution))))
+    (apply str (map direction solution)))
   )
 
 (fact 
-  (solve (maze 1)) => "S"
   (solve (maze 2)) => "E"
   (solve (maze 3)) => "N"
   (solve (maze 4)) => "W"
