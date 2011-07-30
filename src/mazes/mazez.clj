@@ -1,27 +1,10 @@
 (ns mazes.mazez  
+  (:use [mazes.retriever])
   (:use [clojure-tdd.core] :reload)
   (:use [clojure.test])    
   (:use [midje.sweet])
-  (:import (java.io BufferedReader FileReader))
   (:use [clojure.contrib.seq-utils :only [positions indexed]] ))
 
-(defn- file-name [number]
-  (if (>= number 10)
-    (str "src/mazes/problems/" number "_problem.txt")
-    (str "src/mazes/problems/0" number "_problem.txt"))
-  )
-
-(fact
-  (file-name 1) => "src/mazes/problems/01_problem.txt"
-  (file-name 23) => "src/mazes/problems/23_problem.txt")
-
-(defn maze [number]
-  (with-open [f (BufferedReader. (FileReader. (file-name number))) ]
-     (doall (line-seq f))))
-
-(fact
-  (maze 1) => ["#I#" "#O#"]
-  (maze 2) => ["##" "IO" "##"])
 
 (defn- vector-diff [v substractor]
   (apply vector (map - v substractor)))
@@ -97,6 +80,28 @@
   (select-possible (next-positions [0 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 1])
   (select-possible (next-positions [0 1]) (index-maze '("#I#" "#.." "###"))) => '([1 1])
   (select-possible (next-positions [1 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 2])
+  )
+
+(defn distance [a b]
+  (let [delta (vector-diff b a)]
+    (reduce +  (map * delta delta))))
+
+(fact
+  (distance [1 0] [1 1]) => 1
+  (distance [1 1] [0 1]) => 1
+  (> (distance [5 4] [0 1]) (distance [1 1] [5 4] )) => truthy
+  )
+
+(defn sorts-by-dist [a b]
+  (cond 
+    (< a b) -1
+    (= a b) 0
+    (> a b) 1
+    ))
+(fact
+  (sorts-by-dist 1 2) => -1
+  (sorts-by-dist 3 3) => 0
+  (sorts-by-dist 4 0) => 1
   )
 (defn move [{:keys [maze pos lastpos] :as solve-state}]
   (def choose first)
