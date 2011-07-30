@@ -99,8 +99,9 @@
   (select-possible (next-positions [1 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 2])
   )
 (defn move [{:keys [maze pos lastpos] :as solve-state}]
-  (println "pos " pos " lastpos " lastpos)
-  (merge solve-state {:lastpos pos :pos (first (select-possible 
+  (def choose first)
+  ;;(println "pos " pos " lastpos " lastpos)
+  (merge solve-state {:lastpos pos :pos (choose (select-possible 
                                (next-positions pos) 
                                maze))} ))
 
