@@ -5,10 +5,24 @@
   (:use [midje.sweet])
   (:use [clojure.contrib.seq-utils :only [positions indexed]] ))
 
-
+; 00 01 02
+; 10 11 12
+(def directions #{[1 0]
+                  [-1 0]
+                  [0 1]
+                  [0 -1]})
+(defn- vector-add [v delta]
+  (apply vector (map + v delta)))
+(defn- next-positions [current]
+  (map  (partial vector-add current) directions))
+(fact 
+  (next-positions [2 2]) => (in-any-order  '([1 2]
+                                             [3 2]
+                                             [2 1]
+                                             [2 3])))
 (defn- vector-diff [v substractor]
   (apply vector (map - v substractor)))
-(defn- direction [{:keys [lastpos pos]}]
+(defn- direction [[lastpos pos]]
     (if (some nil? [lastpos pos]) 
       nil 
       (cond 
@@ -18,17 +32,11 @@
         (= [-1 0] (vector-diff pos lastpos)) "N")))
   
 (fact
-  (direction {:lastpos [1 1] :pos [0 1]}) => "N")
+  (direction  '([1 1] [0 1])) => "N")
 
 
-(def directions #{[1 0]
-                  [-1 0]
-                  [0 1]
-                  [0 -1]})
-; 00 01 02
-; 10 11 12
 (defn pos [token maze] 
-  ; used to find the first position of token in maze (seq of strings)
+  ; find the first position of token in maze (seq of strings)
   (let [line-contains-token? (fn [ln] (.contains ln (str token)))
         line (first (filter line-contains-token?  maze))]
     [ (first (positions line-contains-token? maze)) (first (positions #{token} line ))]))
@@ -60,15 +68,7 @@
                                   [1 0] \#
                                   [1 1] \O
                                   [1 2] \#}))
-(defn- vector-add [v delta]
-  (apply vector (map + v delta)))
-(defn- next-positions [current]
-  (map  (partial vector-add current) directions))
-(fact 
-  (next-positions [2 2]) => (in-any-order  '([1 2]
-                                             [3 2]
-                                             [2 1]
-                                             [2 3])))
+
 (defn- walkway-or-exit? [[kee sym]]
   (#{\O \.} sym))
 (defn select-possible [vicinity-coord indexed-maze]
@@ -103,31 +103,38 @@
   (sorts-by-dist 3 3) => 0
   (sorts-by-dist 4 0) => 1
   )
-(defn move [{:keys [maze pos lastpos] :as solve-state}]
+(defn move [{:keys [maze pos lastpos history] :as solve-state}]
   (def choose first)
   ;;(println "pos " pos " lastpos " lastpos)
-  (merge solve-state {:lastpos pos :pos (choose (select-possible 
+  (def next-pos (choose (select-possible 
                                (next-positions pos) 
-                               maze))} ))
+                               maze)))
+  (merge solve-state {:history (conj history next-pos) :lastpos pos :pos next-pos} ))
 
 (fact
   (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [0 1]}) => (contains {:pos [1 1] :lastpos [0 1]})
   (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [1 1]}) => (contains {:pos [1 2] :lastpos [1 1]}))
 
-(defn not-finished? [maze solving-state]
-  (not= (:lastpos solving-state) (pos \O maze)))
+(defn not-finished? [solving-state]
+  (def symbol-at-lastpos ((:maze solving-state) (:lastpos solving-state)))
+  (not= \O symbol-at-lastpos))
 
+(defn- _solve [maze start-state]
+  (take-while not-finished? 
+              (iterate move start-state)))
 (defn solve [maze]
-  (let  [start-state {:maze (index-maze maze) :pos (pos \I maze)}
-         steps (take-while (partial not-finished? maze) 
-              (iterate move start-state))]
-    (apply str (map direction steps)))
+  (let  [entrance (pos \I maze)
+         start-state {:maze (index-maze maze) :pos entrance :history (vector entrance)}
+         states (_solve maze start-state)]
+    (apply str (map direction (partition 2 1 (:history (last states))))))
   )
 
 (fact 
   (solve (maze 2)) => "E"
   (solve (maze 3)) => "N"
   (solve (maze 4)) => "W"
+  (solve (maze 5)) => "SE"
+  (solve (maze 10)) => "EEEEEEEEESEENN"
 )
 
 (defn print-maze [n]
