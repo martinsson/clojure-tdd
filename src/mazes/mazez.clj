@@ -115,18 +115,21 @@
   (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [0 1]}) => (contains {:pos [1 1] :lastpos [0 1]})
   (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [1 1]}) => (contains {:pos [1 2] :lastpos [1 1]}))
 
-(defn not-finished? [solving-state]
-  (def symbol-at-lastpos ((:maze solving-state) (:lastpos solving-state)))
-  (not= \O symbol-at-lastpos))
+(defn finished? [solving-state]
+  (def current-symbol ((:maze solving-state) (:pos solving-state)))
+  (= \O current-symbol))
 
-(defn- _solve [maze start-state]
-  (take-while not-finished? 
-              (iterate move start-state)))
+(defn- _solve [start-state]
+  (loop [state start-state]
+    (if (finished? state)
+      state
+      (recur (move state)))))
+
 (defn solve [maze]
   (let  [entrance (pos \I maze)
          start-state {:maze (index-maze maze) :pos entrance :history (vector entrance)}
-         states (_solve maze start-state)]
-    (apply str (map direction (partition 2 1 (:history (last states))))))
+         last-state (_solve start-state)]
+    (apply str (map direction (partition 2 1 (:history last-state)))))
   )
 
 (fact 
