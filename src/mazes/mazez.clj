@@ -7,16 +7,16 @@
 
 ; 00 01 02
 ; 10 11 12
-(def directions #{[1 0]
+(def all-directions #{[1 0]
                   [-1 0]
                   [0 1]
                   [0 -1]})
 (defn- vector-add [v delta]
   (apply vector (map + v delta)))
-(defn- next-positions [current]
-  (map  (partial vector-add current) directions))
+(defn- neighbors [current]
+  (map  (partial vector-add current) all-directions))
 (fact 
-  (next-positions [2 2]) => (in-any-order  '([1 2]
+  (neighbors [2 2]) => (in-any-order  '([1 2]
                                              [3 2]
                                              [2 1]
                                              [2 3])))
@@ -77,9 +77,9 @@
           (select-keys indexed-maze vicinity-coord))))
 
 (fact "selects pathway or exit"
-  (select-possible (next-positions [0 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 1])
-  (select-possible (next-positions [0 1]) (index-maze '("#I#" "#.." "###"))) => '([1 1])
-  (select-possible (next-positions [1 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 2])
+  (select-possible (neighbors [0 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 1])
+  (select-possible (neighbors [0 1]) (index-maze '("#I#" "#.." "###"))) => '([1 1])
+  (select-possible (neighbors [1 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 2])
   )
 
 (defn distance [a b]
@@ -105,18 +105,16 @@
   )
 (defn move [{:keys [maze pos lastpos history] :as solve-state}]
   (def choose first)
-  ;;(println "pos " pos " lastpos " lastpos)
-  (def next-pos (choose (select-possible 
-                               (next-positions pos) 
-                               maze)))
+  (def possibles (select-possible (neighbors pos) maze))
+  (def next-pos (choose possibles))
   (merge solve-state {:history (conj history next-pos) :lastpos pos :pos next-pos} ))
 
 (fact
   (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [0 1]}) => (contains {:pos [1 1] :lastpos [0 1]})
   (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [1 1]}) => (contains {:pos [1 2] :lastpos [1 1]}))
 
-(defn finished? [solving-state]
-  (def current-symbol ((:maze solving-state) (:pos solving-state)))
+(defn finished? [{:keys [maze pos]}]
+  (def current-symbol (maze pos))
   (= \O current-symbol))
 
 (defn- _solve [start-state]
