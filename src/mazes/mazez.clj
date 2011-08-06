@@ -49,17 +49,16 @@
 
 ; -> maze index-maze (while not O move (chose (remove-current (filter-possible (new-possitions current-pos))) -> map-direction 
 
-(defn- index-maze 
-  ([maze] (index-maze maze  0 0 {}))
-  ([maze lineN¡ colN¡ indexed-maze ]
-    (cond 
-      (empty? maze) indexed-maze
-      (empty? (first maze)) (recur (next maze) (inc lineN¡) 0 indexed-maze)
-      true (recur 
-             (cons (next (first maze)) (next maze)) 
-             lineN¡ 
-             (inc colN¡) 
-             (merge indexed-maze {[lineN¡ colN¡] (first (first maze))}) ))))
+(defn- index-maze [maze] 
+  (let [width (count (first maze))
+        positions (flatten (map seq maze))
+        total-size (count positions)] 
+    (apply conj 
+           (for [position (range total-size) 
+                 :let [row    (quot position width) 
+                       column (mod position width)
+                       sym    (nth positions position)]] 
+             { [row column]  sym}))))
 
 (fact
   (index-maze '("#I#" "#O#")) => (in-any-order {[0 0] \# 
@@ -142,7 +141,8 @@
   (solve (maze 3)) => "N"
   (solve (maze 4)) => "W"
   (solve (maze 5)) => "SE"
-  ;(solve (maze 10)) => "EEEEEEEEESEENN"
+;  (solve (maze 10)) => "EEEEEEEEESEENN"
+;    (provided (use-random col _) => (first col))
 )
 
 (defn print-maze [n]
