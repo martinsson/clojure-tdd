@@ -103,10 +103,17 @@
   (sorts-by-dist 3 3) => 0
   (sorts-by-dist 4 0) => 1
   )
+(defn use-first [col _]
+  (first col))
+
+(defn use-random [col _]
+  (let [i (.nextInt (new java.util.Random) (count col) )]
+    (nth col i)))
+
 (defn move [{:keys [maze pos lastpos history] :as solve-state}]
-  (def choose first)
+  (def choose use-random)
   (def possibles (select-possible (neighbors pos) maze))
-  (def next-pos (choose possibles))
+  (def next-pos (choose possibles solve-state))
   (merge solve-state {:history (conj history next-pos) :lastpos pos :pos next-pos} ))
 
 (fact
@@ -135,7 +142,7 @@
   (solve (maze 3)) => "N"
   (solve (maze 4)) => "W"
   (solve (maze 5)) => "SE"
-  (solve (maze 10)) => "EEEEEEEEESEENN"
+  ;(solve (maze 10)) => "EEEEEEEEESEENN"
 )
 
 (defn print-maze [n]
@@ -144,3 +151,8 @@
   (doall (map sysout (maze n)))
   (sysout "")
   )
+(defn print-and-solve [n]
+  (print-maze n)
+  (let [solution (solve (maze n))]
+    (println solution)
+    (println "solved in " (count solution))))
