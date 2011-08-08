@@ -109,11 +109,31 @@
   (let [i (.nextInt (new java.util.Random) (count col) )]
     (nth col i)))
 
+(defn least-visited [col {:keys [history]}]
+  (let [freq (frequencies history)
+        never-visited (remove (set history) col)
+        freq-with-zero-visits (merge freq (apply hash-map (interleave never-visited (repeat 0))))] 
+    (use-first (loop [visits 0]
+                 (let [n-visits  (filter #(= visits (freq-with-zero-visits %)) col)]
+                   (if (not-empty n-visits)
+                     n-visits
+                     (recur (inc visits))))) nil)))
+
+(fact 
+  (least-visited [[0 0] [2 0]] {:history [[0 0] [1 0]]}) => [2 0]
+  (least-visited [[0 0] [1 0]] {:history [[0 0] [1 0] [0 0]]}) => [1 0]
+  (least-visited [[0 0] [1 0]] {:history []}) => [0 0]
+  (least-visited [[0 1] [1 0]] {:history [[1 1] [0 0]]}) => [0 1]
+  )
+
 (defn move [{:keys [maze pos lastpos history] :as solve-state}]
-  (def choose use-random)
+  (def choose least-visited)
   (def possibles (select-possible (neighbors pos) maze))
-  (def next-pos (choose possibles solve-state))
-  (merge solve-state {:history (conj history next-pos) :lastpos pos :pos next-pos} ))
+  
+  (if (empty? possibles)
+    (merge solve-state {:history history :lastpos pos :pos nil} )
+    (let [next-pos (choose possibles solve-state)]
+      (merge solve-state {:history (conj history next-pos) :lastpos pos :pos next-pos} ))))
 
 (fact
   (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [0 1]}) => (contains {:pos [1 1] :lastpos [0 1]})
@@ -123,9 +143,13 @@
   (def current-symbol (maze pos))
   (= \O current-symbol))
 
+(def max-steps 5000)
+(defn impossible? [{:keys [history pos]}]
+  (or (nil? pos) (> (count history) max-steps)))
+
 (defn- _solve [start-state]
   (loop [state start-state]
-    (if (finished? state)
+    (if (or (finished? state) (impossible? state))
       state
       (recur (move state)))))
 
@@ -133,7 +157,9 @@
   (let  [entrance (pos \I maze)
          start-state {:maze (index-maze maze) :pos entrance :history (vector entrance)}
          last-state (_solve start-state)]
-    (apply str (map direction (partition 2 1 (:history last-state)))))
+    (if (impossible? last-state) 
+      "I"
+      (apply str (map direction (partition 2 1 (:history last-state))))))
   )
 
 (fact 
@@ -141,7 +167,8 @@
   (solve (maze 3)) => "N"
   (solve (maze 4)) => "W"
   (solve (maze 5)) => "SE"
-;  (solve (maze 10)) => "EEEEEEEEESEENN"
+  (solve (maze 8)) => "I"
+  (solve (maze 10)) => "EEEEEEEEESEENN"
 ;    (provided (use-random col _) => (first col))
 )
 
@@ -155,4 +182,4 @@
   (print-maze n)
   (let [solution (solve (maze n))]
     (println solution)
-    (println "solved in " (count solution))))
+    (println "solved maze" n "in" (count solution))))
