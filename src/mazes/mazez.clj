@@ -81,27 +81,6 @@
   (select-possible (neighbors [1 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 2])
   )
 
-(defn distance [a b]
-  (let [delta (vector-diff b a)]
-    (reduce +  (map * delta delta))))
-
-(fact
-  (distance [1 0] [1 1]) => 1
-  (distance [1 1] [0 1]) => 1
-  (> (distance [5 4] [0 1]) (distance [1 1] [5 4] )) => truthy
-  )
-
-(defn sorts-by-dist [a b]
-  (cond 
-    (< a b) -1
-    (= a b) 0
-    (> a b) 1
-    ))
-(fact
-  (sorts-by-dist 1 2) => -1
-  (sorts-by-dist 3 3) => 0
-  (sorts-by-dist 4 0) => 1
-  )
 (defn use-first [col _]
   (first col))
 
@@ -109,25 +88,9 @@
   (let [i (.nextInt (new java.util.Random) (count col) )]
     (nth col i)))
 
-(defn least-visited [col {:keys [history]}]
-  (let [freq (frequencies history)
-        never-visited (remove (set history) col)
-        freq-with-zero-visits (merge freq (apply hash-map (interleave never-visited (repeat 0))))] 
-    (use-first (loop [visits 0]
-                 (let [n-visits  (filter #(= visits (freq-with-zero-visits %)) col)]
-                   (if (not-empty n-visits)
-                     n-visits
-                     (recur (inc visits))))) nil)))
-
-(fact 
-  (least-visited [[0 0] [2 0]] {:history [[0 0] [1 0]]}) => [2 0]
-  (least-visited [[0 0] [1 0]] {:history [[0 0] [1 0] [0 0]]}) => [1 0]
-  (least-visited [[0 0] [1 0]] {:history []}) => [0 0]
-  (least-visited [[0 1] [1 0]] {:history [[1 1] [0 0]]}) => [0 1]
-  )
 
 (defn move [{:keys [maze pos lastpos history] :as solve-state}]
-  (def choose least-visited)
+  (def choose use-random)
   (def possibles (select-possible (neighbors pos) maze))
   
   (if (empty? possibles)
