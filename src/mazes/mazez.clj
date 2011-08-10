@@ -3,7 +3,7 @@
   (:use [clojure-tdd.core] :reload)
   (:use [clojure.test])    
   (:use [midje.sweet])
-  (:use [clojure.contrib.seq-utils :only [positions indexed]] ))
+  (:use [clojure.contrib.seq-utils :only [indexed]] ))
 
 ; 00 01 02
 ; 10 11 12
@@ -31,16 +31,15 @@
   (direction  '([1 1] [0 1])) => "N")
 
 
-(defn pos [token maze] 
-  ; find the first position of token in maze (seq of strings)
-  (let [line-contains-token? (fn [ln] (.contains ln (str token)))
-        line (first (filter line-contains-token?  maze))]
-    [ (first (positions line-contains-token? maze)) (first (positions #{token} line ))]))
+(defn pos [token idx-maze] 
+  ; find the first position of token in maze 
+  ((clojure.set/map-invert idx-maze) token))
 
+(def idx-maze1 {[1 2] \#, [1 1] \O, [1 0] \#, [0 2] \#, [0 1] \I, [0 0] \#})
 (fact
   "position of I and O"
-  (pos \I ["#I#" "#O#"]) => [0 1]
-  (pos \O ["#I#" "#O#"]) => [1 1]
+  (pos \I idx-maze1) => [0 1]
+  (pos \O idx-maze1) => [1 1]
   )
 
 ; -> maze index-maze (while not O move (chose (remove-current (filter-possible (new-possitions current-pos))) -> map-direction 
@@ -113,8 +112,9 @@
       (recur (move state)))))
 
 (defn solve [maze]
-  (let  [entrance (pos \I maze)
-         start-state {:maze (index-maze maze) :pos entrance :history (vector entrance)}
+  (let  [idxmaze (index-maze maze)
+         entrance (pos \I idxmaze)
+         start-state {:maze idxmaze :pos entrance :history (vector entrance)}
          last-state (_solve start-state)]
     (if (impossible? last-state) 
       "I"
