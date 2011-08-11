@@ -7,21 +7,24 @@
 
 ; 00 01 02
 ; 10 11 12
-(def all-directions {[1 0] "S" 
-                  [-1 0] "N" 
-                  [0 1] "E" 
-                  [0 -1] "W"})
+(def all-directions 
+  {[1  0] "S"
+   [-1 0] "N"
+   [0  1] "E"
+   [0 -1] "W"})
+
 (defn- vector-add [v delta]
   (apply vector (map + v delta)))
+
 (defn- neighbors [current]
   (map  (partial vector-add current) (keys all-directions)))
+
 (fact 
-  (neighbors [2 2]) => (in-any-order  '([1 2]
-                                             [3 2]
-                                             [2 1]
-                                             [2 3])))
+  (neighbors [2 2]) => (in-any-order  '([1 2] [3 2] [2 1] [2 3])))
+
 (defn- vector-diff [v substractor]
   (apply vector (map - v substractor)))
+
 (defn- direction [[lastpos pos]]
     (if (some nil? [lastpos pos]) 
       nil 
@@ -30,7 +33,28 @@
 (fact
   (direction  '([1 1] [0 1])) => "N")
 
+; -> maze index-maze (while not O move (chose (remove-current (filter-possible (new-possitions current-pos))) -> map-direction 
 
+(defn- index-maze [maze] 
+  (let [width (count (first maze))
+        symbols (flatten (map seq maze))
+        total-size (count symbols)] 
+    (apply conj 
+           (for [position (range total-size) 
+                 :let [row    (quot position width) 
+                       column (mod position width)
+                       sym    (nth symbols position)]] 
+             { [row column]  sym}))))
+
+(fact
+  "makes a map with the coordinates as keys symbols as values"
+  (index-maze '("#I#" "#O#")) => (in-any-order {
+                                  [0 0] \# 
+                                  [0 1] \I
+                                  [0 2] \#
+                                  [1 0] \#
+                                  [1 1] \O
+                                  [1 2] \#}))
 (defn pos [token idx-maze] 
   ; find the first position of token in maze 
   ((clojure.set/map-invert idx-maze) token))
@@ -42,28 +66,7 @@
   (pos \O idx-maze1) => [1 1]
   )
 
-; -> maze index-maze (while not O move (chose (remove-current (filter-possible (new-possitions current-pos))) -> map-direction 
-
-(defn- index-maze [maze] 
-  (let [width (count (first maze))
-        positions (flatten (map seq maze))
-        total-size (count positions)] 
-    (apply conj 
-           (for [position (range total-size) 
-                 :let [row    (quot position width) 
-                       column (mod position width)
-                       sym    (nth positions position)]] 
-             { [row column]  sym}))))
-
-(fact
-  (index-maze '("#I#" "#O#")) => (in-any-order {[0 0] \# 
-                                  [0 1] \I
-                                  [0 2] \#
-                                  [1 0] \#
-                                  [1 1] \O
-                                  [1 2] \#}))
-
-(defn- walkway-or-exit? [[kee sym]]
+(defn- walkway-or-exit? [[_ sym]]
   (#{\O \.} sym))
 (defn select-possible [vicinity-coord indexed-maze]
   (keys (filter
@@ -71,9 +74,12 @@
           (select-keys indexed-maze vicinity-coord))))
 
 (fact "selects pathway or exit"
-  (select-possible (neighbors [0 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 1])
-  (select-possible (neighbors [0 1]) (index-maze '("#I#" "#.." "###"))) => '([1 1])
-  (select-possible (neighbors [1 1]) (index-maze '("#I#" "#.O" "###"))) => '([1 2])
+  (select-possible (neighbors [0 1]) (index-maze '("#I#" 
+                                                   "#.O"))) => '([1 1])
+  (select-possible (neighbors [1 1]) (index-maze '("#I#"
+                                                   "#.."))) => '([1 2])
+  (select-possible (neighbors [1 1]) (index-maze '("#I#"
+                                                   "#.O"))) => '([1 2])
   )
 
 (defn use-first [col _]
@@ -85,12 +91,11 @@
 
 
 (defn move [{:keys [maze pos lastpos history] :as solve-state}]
-  (def choose use-random)
+  (def choice-fn use-random)
   (def possibles (select-possible (neighbors pos) maze))
-  
   (if (empty? possibles)
     (merge solve-state {:history history :lastpos pos :pos nil} )
-    (let [next-pos (choose possibles solve-state)]
+    (let [next-pos (choice-fn possibles solve-state)]
       (merge solve-state {:history (conj history next-pos) :lastpos pos :pos next-pos} ))))
 
 (fact
@@ -101,24 +106,26 @@
   (def current-symbol (maze pos))
   (= \O current-symbol))
 
-(def max-steps 5000)
+(def MAX-STEPS 5000)
 (defn impossible? [{:keys [history pos]}]
-  (or (nil? pos) (> (count history) max-steps)))
+  (def max-steps-reached (> (count history) MAX-STEPS))
+  (def cant-move (nil? pos))
+  (or max-steps-reached cant-move))
 
-(defn- _solve [start-state]
-  (loop [state start-state]
-    (if (or (finished? state) (impossible? state))
-      state
-      (recur (move state)))))
+(defn- _solve [state]
+  (if (or (finished? state) (impossible? state))
+    state
+    (recur (move state))))
 
 (defn solve [maze]
-  (let  [idxmaze (index-maze maze)
-         entrance (pos \I idxmaze)
-         start-state {:maze idxmaze :pos entrance :history (vector entrance)}
-         last-state (_solve start-state)]
-    (if (impossible? last-state) 
+  (let  [idx-maze (index-maze maze)
+         entrance (pos \I idx-maze)
+         start-state {:maze idx-maze :pos entrance :history [entrance]}
+         final-state (_solve start-state)
+         path (:history final-state)]
+    (if (impossible? final-state) 
       "I"
-      (apply str (map direction (partition 2 1 (:history last-state))))))
+      (apply str (map direction (partition 2 1 path)))))
   )
 
 (fact 
