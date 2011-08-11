@@ -93,10 +93,10 @@
 (defn move [{:keys [maze pos lastpos history] :as solve-state}]
   (def choice-fn use-random)
   (def possibles (select-possible (neighbors pos) maze))
-  (if (empty? possibles)
-    (merge solve-state {:history history :lastpos pos :pos nil} )
-    (let [next-pos (choice-fn possibles solve-state)]
-      (merge solve-state {:history (conj history next-pos) :lastpos pos :pos next-pos} ))))
+  (def next-pos (if (empty? possibles)
+                  nil
+                  (choice-fn possibles solve-state)))
+  (merge solve-state {:history (conj history next-pos) :lastpos pos :pos next-pos} ))
 
 (fact
   (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [0 1]}) => (contains {:pos [1 1] :lastpos [0 1]})
