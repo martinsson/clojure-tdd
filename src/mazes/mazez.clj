@@ -35,16 +35,16 @@
 
 ; -> maze index-maze (while not O move (chose (remove-current (filter-possible (new-possitions current-pos))) -> map-direction 
 
-(defn- index-maze [maze] 
-  (let [width (count (first maze))
-        symbols (flatten (map seq maze))
+(defn- index-maze [str-maze] 
+  (let [width (count (first str-maze))
+        symbols (flatten (map seq str-maze))
         total-size (count symbols)] 
     (apply conj 
            (for [position (range total-size) 
                  :let [row    (quot position width) 
                        column (mod position width)
                        sym    (nth symbols position)]] 
-             { [row column]  sym}))))
+             {[row column]  sym}))))
 
 (fact
   "makes a map with the coordinates as keys symbols as values"
@@ -117,8 +117,8 @@
     state
     (recur (move state))))
 
-(defn solve [maze]
-  (let  [idx-maze (index-maze maze)
+(defn solve [str-maze]
+  (let  [idx-maze (index-maze str-maze)
          entrance (pos \I idx-maze)
          start-state {:maze idx-maze :pos entrance :history [entrance]}
          final-state (_solve start-state)
