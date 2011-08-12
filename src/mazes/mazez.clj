@@ -91,26 +91,26 @@
 
 
 (defn move [{:keys [maze pos lastpos history] :as solve-state}]
-  (def choice-fn use-random)
-  (def possibles (select-possible (neighbors pos) maze))
-  (def next-pos (if (empty? possibles)
-                  nil
-                  (choice-fn possibles solve-state)))
-  (merge solve-state {:history (conj history next-pos) :lastpos pos :pos next-pos} ))
+  (let [choice-fn use-random
+        possibles (select-possible (neighbors pos) maze)
+        next-pos (if (empty? possibles)
+                   nil
+                   (choice-fn possibles solve-state))] 
+    (merge solve-state {:history (conj history next-pos) :lastpos pos :pos next-pos} )))
 
 (fact
   (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [0 1]}) => (contains {:pos [1 1] :lastpos [0 1]})
   (move {:maze (index-maze '("#I#" "#.O" "###")) :pos [1 1]}) => (contains {:pos [1 2] :lastpos [1 1]}))
 
 (defn finished? [{:keys [maze pos]}]
-  (def current-symbol (maze pos))
-  (= \O current-symbol))
+  (let [current-symbol (maze pos)] 
+    (= \O current-symbol)))
 
 (def MAX-STEPS 5000)
 (defn impossible? [{:keys [history pos]}]
-  (def max-steps-reached (> (count history) MAX-STEPS))
-  (def cant-move (nil? pos))
-  (or max-steps-reached cant-move))
+  (let [max-steps-reached (> (count history) MAX-STEPS)
+        cant-move (nil? pos)] 
+    (or max-steps-reached cant-move)))
 
 (defn- _solve [state]
   (if (or (finished? state) (impossible? state))
