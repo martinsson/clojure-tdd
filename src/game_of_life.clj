@@ -45,3 +45,28 @@
   (next-state :dead-cell 2) => :dead-cell
   (next-state :dead-cell 4) => :dead-cell)
 
+;; Cgrand
+(defn neighbours [[x y :as cell]]
+  (remove #{cell} 
+          (for [dx [-1 0 1] dy [-1 0 1]]
+            [(+ dx x) (+ dy y)])))
+
+(defn isBorn? [neighbor-count]
+  (= neighbor-count 3))
+
+(defn survives? [neighbor-count cel live-cells]
+  (and (= neighbor-count 2) (live-cells cel)))
+
+(defn step [live-cells]
+  (let [all-neighbors-of-all-cells (mapcat neighbours live-cells)
+        neighbor-count-for-all-cells (frequencies all-neighbors-of-all-cells)] 
+    (set (for [[cel neighbor-count] neighbor-count-for-all-cells
+             :when (or (isBorn? neighbor-count) (survives? neighbor-count cel live-cells))]
+         cel))))
+
+(def blinker-a #{[1 0] [1 1] [1 2]})
+(def blinker-b #{[2 1] [1 1] [0 1]})
+(fact
+   (step blinker-a) => blinker-b
+   (take 10 (iterate step blinker-a)) => 
+      (has-prefix [blinker-a blinker-b blinker-a blinker-b blinker-a]))
