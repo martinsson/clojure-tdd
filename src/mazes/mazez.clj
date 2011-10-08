@@ -82,9 +82,6 @@
                                                    "#.O"))) => '([1 2])
   )
 
-(defn use-first [col _]
-  (first col))
-
 (defn use-random [col _]
   (let [i (.nextInt (new java.util.Random) (count col) )]
     (nth col i)))
