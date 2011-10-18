@@ -9,17 +9,17 @@
 (defn ciel-quot [num div]
   (inc (quot (dec num) div)))
 
-(defn nb-pills [{:keys [quantity takes-per-day days]}]
-  (* quantity takes-per-day days))
 
 (defn boxes [{:keys [posology medic]}]
   (ciel-quot (nb-pills posology) (box-size medic)))
 
 (defprotocol PillCalc
   (nb-pills [posology]))
+
 (defrecord ConstantPosology [quantity takes-per-day days]
   PillCalc
-  (nb-pills []))
+  (nb-pills [posology] (* quantity takes-per-day days)))
+
 (defrecord Prescription [medic posology])
 (defrecord OrderItem [medic boxes])
 
@@ -31,10 +31,9 @@
 ;;----
 
 (fact
-  (nb-pills {:quantity 1 :takes-per-day 1 :days 5}) => 5
-  (nb-pills {:quantity 2 :takes-per-day 1 :days 5}) => 10
-  (nb-pills {:quantity 2 :takes-per-day 3 :days 5}) => 30
-  )
+  (nb-pills (ConstantPosology. 1 1 5)) => 5
+  (nb-pills (ConstantPosology. 2 1 5)) => 10
+  (nb-pills (ConstantPosology. 2 3 5)) => 30)
 (let [prescription {:posology ...posology... :medic ...medic...}] 
   (fact
     "we are given the minimum amount of boxes that covers the posology"
