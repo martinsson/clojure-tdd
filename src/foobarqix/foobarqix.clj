@@ -1,45 +1,43 @@
 (ns foobarqix.foobarqix
-  (:use [clojure-tdd.core] :reload)
   (:use [clojure.test])    
   (:use [midje.sweet]))
-(defn replaceAll [regex text replacement]
-  (apply str (repeat (count (re-seq regex text)) replacement))
-;;  (reduce #(if (= %2 \3) (str %1 replacement) replacement) "" text)
-  )
 
-(defn append-for-occurences [number text occ suffix]
-  [number (str text (replaceAll occ (str number) suffix))])
+(defn- add-suffix-for-every-occ-in-number [suffix occ number]
+  (apply str (for [c (re-seq occ (str number))] suffix)))
 
-(defn replace-by-Foo [[number text]]
-  (append-for-occurences number text #"3" "Foo"))
+(defn- update-text-for-occurences-of [number text occ suffix]
+  [number (str text (add-suffix-for-every-occ-in-number suffix occ number))])
 
-(defn replace-by-Bar [[number text]]
-  (append-for-occurences number text #"5" "Bar"))
+(defn- replace-3-by-Foo [[number text]]
+  (update-text-for-occurences-of number text #"3" "Foo"))
 
-(defn replace-by-Qix [[number text]]
-  (append-for-occurences number text #"7" "Qix"))
+(defn- replace-5-by-Bar [[number text]]
+  (update-text-for-occurences-of number text #"5" "Bar"))
 
-(defn append-for-div-by [number text div suffix]
+(defn- replace-7-by-Qix [[number text]]
+  (update-text-for-occurences-of number text #"7" "Qix"))
+
+(defn- update-text-for-div-by [number text div suffix]
   [number (if (zero? (rem number div))
             (str text suffix)
             text)])
 
-(defn divisible-by-3 [[number text]]
-  (append-for-div-by number text 3 "Foo"))
+(defn- divisible-by-3 [[number text]]
+  (update-text-for-div-by number text 3 "Foo"))
 
-(defn divisible-by-5 [[number text]]
-  (append-for-div-by number text 5 "Bar"))
+(defn- divisible-by-5 [[number text]]
+  (update-text-for-div-by number text 5 "Bar"))
 
-(defn divisible-by-7 [[number text]]
-  (append-for-div-by number text 7 "Qix"))
+(defn- divisible-by-7 [[number text]]
+  (update-text-for-div-by number text 7 "Qix"))
 
-(defn number-or-fbq [[number text]]
+(defn- number-or-text [[number text]]
   (if (empty? text)
     (str number)
     text))
 
 (defn fbq [n]
-  (-> [n ""] divisible-by-3 divisible-by-5 divisible-by-7 replace-by-Foo replace-by-Bar replace-by-Qix number-or-fbq))
+  (-> [n ""] divisible-by-3 divisible-by-5 divisible-by-7 replace-3-by-Foo replace-5-by-Bar replace-7-by-Qix number-or-text))
 
 (fact "simply print the number when its not a special number"
    (fbq 1) => "1"
