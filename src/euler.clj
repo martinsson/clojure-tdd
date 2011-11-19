@@ -4,6 +4,7 @@
   (:use [clojure.test])    
   (:use [midje.sweet])
   (:use clojure.contrib.combinatorics)
+  (:use [euler-common])
   (:use [primes]))
 
 (defn problem1 []
