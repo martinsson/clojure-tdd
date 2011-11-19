@@ -11,9 +11,7 @@
 
 ;; sort of a java interface
 (defprotocol PillCalc
-  (nb-pills
-    "The number of pills necessary for the whole duration of the cure"
-    [posology]))
+  (nb-pills [posology]))
 
 (defrecord ConstantPosology [quantity takes-per-day days]
   PillCalc  ;; The data structure ConstantPosology implements the PillCalc abstraction
@@ -33,15 +31,14 @@
 (defn boxes [[medic posology]]
   (ciel-quot (nb-pills posology) (box-size medic)))
 
-(defrecord OrderItem [medic boxes])
-
 (defn order [prescriptions]
-  ;; lets declare a function order-item that creates an OrderItem given a prescription-entry
+  ;; lets declare a function order-item that creates map medic => boxes
   (let [order-item (fn [prescription] 
-                     (OrderItem. (key prescription) (boxes prescription)))]
-    ;; now we can project the list of prescription entries to a list of OrderItems 
-    ;; by applying order-item to each element in prescriptions
-    (map order-item prescriptions)))  
+                    {(key prescription) (boxes prescription)} )]
+    ;; now we can project from a map of medic => posology to a map of medic => boxes 
+    ;; by applying order-item to each entry in prescriptions, so we end up with a list of maps
+    ;; one for each medic, "apply merge" will merge it into a single map
+    (apply merge (map order-item prescriptions))))  
 
 ;;---- Facts about boxes and order
 (fact
@@ -58,12 +55,10 @@
 
 (fact
   "an order can contain several prescriptions for different medics"
-  (order {:paracetamol ...posology-cetamol... 
-          :paracyl ...posology-paracyl...}) 
-     => [(OrderItem. :paracetamol 2) (OrderItem. :paracyl 3)]
+  (order {:paracetamol ...posology-cetamol... :paracyl ...posology-paracyl...}) 
+     => {:paracetamol 2 :paracyl 3}
     (provided 
       (box-size :paracetamol) => 15
       (nb-pills ...posology-cetamol...) => 20
       (box-size :paracyl) => 7
-      (nb-pills ...posology-paracyl...) => 15
-      ))
+      (nb-pills ...posology-paracyl...) => 15 ))
