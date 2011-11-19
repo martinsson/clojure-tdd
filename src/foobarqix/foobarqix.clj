@@ -19,6 +19,11 @@
 (defn replace-by-Qix [[number text]]
   (append-for-occurences number text #"7" "Qix"))
 
+(defn append-for-div-by [number text div suffix]
+  [number (if (zero? (rem number div))
+            (str text suffix)
+            text)])
+
 (defn divisible-by-3 [[number text]]
   (append-for-div-by number text 3 "Foo"))
 
@@ -27,11 +32,6 @@
 
 (defn divisible-by-7 [[number text]]
   (append-for-div-by number text 7 "Qix"))
-
-(defn append-for-div-by [number text div suffix]
-  [number (if (zero? (rem number div))
-            (str text suffix)
-            text)])
 
 (defn number-or-fbq [[number text]]
   (if (empty? text)
